@@ -2,14 +2,13 @@ import java.util.Random;
 
 public class Crop
 {
-    private String name; //TODO useful when debugging, and eventually for printing out a strategy
+    private String name; //TODO useful when debugging, and eventually for printing out a strategy //TODO change back to private
     private int buyPrice;
     protected int sellPrice;
     protected int growthTime;
     protected int regrowthTime;
     private int numHarvested; //the number of times this crop can be harvested at harvest time
-    private int chanceForMore; //the chance for more of this crop to be harvested at harvest time (% chance)
-
+    protected int chanceForMore; //the chance for more of this crop to be harvested at harvest time (% chance)
     Random random;
 
     public Crop(String name, int buyPrice, int sellPrice, int growthTime, int regrowthTime, int numHarvested, int chanceForMore)
@@ -37,11 +36,6 @@ public class Crop
 
     public int getSellPrice()
     {
-        if (chanceForMore != 0 && random.nextInt(100/chanceForMore) == 0)
-        {
-            return this.sellPrice*(this.numHarvested+1);
-        }
-
         return this.sellPrice*this.numHarvested;
     }
 

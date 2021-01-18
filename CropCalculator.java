@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * This program calculates the most lucrative combination of planting crops in Stardew Valley.
@@ -13,8 +14,13 @@ import java.util.ArrayList;
  * 
  * Such that, if I comment "harvest crops here", I mean we are both harvesting and selling them,
  * and if I comment "plant seeds here", it means we are both buying the seeds and planting them.
+ * Buying and planting, and harvesting and selling, always happen on the same day.
  * 
- * Buying and planting, and harvesting and selling, always happens on the same day.
+ * In the case of selling, I assume you will sell all your crops through the Shipping Box, meaning
+ * the money is obtained the following day. While this is less lucrative (as you are unable to
+ * invest in crops as soon), according to the wiki: https://stardewcommunitywiki.com/Shipping
+ *      "Items sold to merchants are not included in the statistics on the Collection tab, nor do they count towards shipping-specific Achievements."
+ * Thus, it is best the player sells all of their crops through the Shipping Box.
  */
 
 //TODO
@@ -23,7 +29,12 @@ import java.util.ArrayList;
  *      max player energy
  *          watering can efficiency
  *          watering can upgrade
- *  
+ *          should take into account sprinklers, which increases the number of tillable squares depending on the sprinkler type
+ *          it would be cool to tell the player that they have extra money stored up after a certain point.
+ *              Like they've invested all they possibly can, and can now use the leftover money to
+ *              purchase other things (e.g. tool upgrades, break open geos, etc.). This could be checked in permutate()
+ *          allow the player to increase their max energy by telling the algorithm they are willing to eat food everyday to keep it up
+ * 
  *      ability to turn crop into other products that sell for even more
  *          artisan profession
  * 
@@ -54,6 +65,9 @@ import java.util.ArrayList;
  *      
  *          Crops that last longer than one season?
  * 
+ *      The ability to sell your crops the same day you harvest them. No goldCache. Gets rid of
+ *      statistic tracking and achievements, but it is more lucrative to sell them the same day.
+ * 
  *      etc.
  */
 
@@ -71,19 +85,19 @@ public class CropCalculator
     //all crop types, listed by season
 
     //SUMMER                                       name              buyPrice       sellPrice     growthTime     regrowthTime     numHarvested     chanceForMore
-    static final Crop TOMATO = new Crop         ("TOMATO",              50,            60,            11,            4,                1,                5);
-    static final Crop PEPPER = new Crop         ("PEPPER",              40,            40,            5,             3,                1,                3);
-    static final Crop BLUEBERRY = new Crop      ("BLUEBERRY",           80,            50,            13,            4,                3,                2);
-    static final Crop CORN = new Crop           ("CORN",                150,           50,            14,            4,                1,                0);
-    static final Crop HOPS = new Crop           ("HOPS",                60,            25,            11,            1,                1,                0);
-    static final Crop MELON = new Crop          ("MELON",               80,            250,           12,            0,                1,                0); //TODO giant crop
-    static final Crop POPPY = new Crop          ("POPPY",               100,           140,           7,             0,                1,                0);
-    static final Crop RADISH = new Crop         ("RADISH",              40,            90,            6,             0,                1,                0);
-    static final Crop RED_CABBAGE = new Crop    ("RED_CABBAGE",         100,           260,           9,             0,                1,                0); //only available from year 2+
-    static final Crop STARFRUIT = new Crop      ("STARFRUIT",           400,           750,           13,            0,                1,                0);
-    static final Crop SUMMER_SPANGLE = new Crop ("SUMMER_SPANGLE",      50,            90,            8,             0,                1,                0);
- // static final Crop SUNFLOWER = new Crop      ("SUNFLOWER",           200,           80,            8,             0,                1,                0); //TODO yields 0-2 sunflower seeds when harvested, same thing for coffee beans
-    static final Crop WHEAT = new Crop          ("WHEAT",               10,            25,            4,             0,                1,                0);
+    static final Crop TOMATO = new Crop         ("Tomato",              50,            60,            11,            4,                1,                5);
+    static final Crop PEPPER = new Crop         ("Pepper",              40,            40,            5,             3,                1,                3);
+    static final Crop BLUEBERRY = new Crop      ("Blueberry",           80,            50,            13,            4,                3,                2);
+    static final Crop CORN = new Crop           ("Corn",                150,           50,            14,            4,                1,                0);
+    static final Crop HOPS = new Crop           ("Hops",                60,            25,            11,            1,                1,                0);
+    static final Crop MELON = new Crop          ("Melon",               80,            250,           12,            0,                1,                0);
+    static final Crop POPPY = new Crop          ("Poppy",               100,           140,           7,             0,                1,                0);
+    static final Crop RADISH = new Crop         ("Radish",              40,            90,            6,             0,                1,                0);
+    static final Crop RED_CABBAGE = new Crop    ("Red Cabbage",         100,           260,           9,             0,                1,                0); //only available from year 2+
+    static final Crop STARFRUIT = new Crop      ("Starfruit",           400,           750,           13,            0,                1,                0);
+    static final Crop SUMMER_SPANGLE = new Crop ("Summer Spangle",      50,            90,            8,             0,                1,                0);
+ // static final Crop SUNFLOWER = new Crop      ("Sunflower",           200,           80,            8,             0,                1,                0); //TODO yields 0-2 sunflower seeds when harvested, same thing for coffee beans
+    static final Crop WHEAT = new Crop          ("Wheat",               10,            25,            4,             0,                1,                0);
     static final int MAX_DAYS = 28;
 
     //define which crops are available in each season
@@ -95,40 +109,44 @@ public class CropCalculator
     public static void main(String[] args)
     {
         //editable variables
-        final int day = 1;
+        final int day = 20;
         final SEASON season = SEASON.SUMMER;
-        final int gold = 50;
+        final int gold = 100; //note here that when gold increases beyond a reasonable level, algorithm runtime drastically increases,
+                             //as there are many more combinations possible. However, once player energy is factored in, gold will
+                             //have a cap number for increasing runtime (e.g. a value of gold over x no longer makes the program slower).
+                             //Specifically, this cap = the most expensive crop * number of squares the player can water in a day
 
-        Crop[] crops;
-
+        ArrayList<Crop> crops;
         switch (season)
         {
             case SPRING:
-                crops = SPRING_CROPS.clone();
+                crops = new ArrayList<>(Arrays.asList(SPRING_CROPS));
                 break;
             case SUMMER:
-                crops = SUMMER_CROPS.clone();
+                crops = new ArrayList<>(Arrays.asList(SUMMER_CROPS));
                 break;
             case FALL:
-                crops = FALL_CROPS.clone();
+                crops = new ArrayList<>(Arrays.asList(FALL_CROPS));
                 break;
             case WINTER:
             default:
-                crops = WINTER_CROPS.clone();
+                crops = new ArrayList<>(Arrays.asList(WINTER_CROPS));
                 break;
         }
 
         int daysRemaining = MAX_DAYS - day;
         ArrayList<Farm> farms = new ArrayList<>();
-        Farm startingFarm = new Farm(crops, null, gold, 0, daysRemaining, true);
+        Farm startingFarm = new Farm(crops, null, gold, 0, daysRemaining, null);
         farms.add(startingFarm);
 
+        //TODO a loading or status bar would go nicely here
         //simulate every possible permutation of farms
-        for (int i = 0; i < daysRemaining; i++)
+        //this is a breadth-first search
+        for (int i = 0; i < daysRemaining+1; i++) //plus one to ensure we have a FarmEvent log for the last day
         {
             System.out.println("Day " + (day + i));
+            
             ArrayList<Farm> newFarms = new ArrayList<>();
-
             for (Farm farm : farms)
             {
                 newFarms.addAll(farm.simulateDay());
@@ -138,22 +156,23 @@ public class CropCalculator
             farms = newFarms;
         }
 
-        //determine which permutation was the most profitable
-        Farm mostProfitableFarm = farms.get(0);
-        for (int i = 1; i < farms.size(); i++)
-        {
-            if (farms.get(i).getGold() > mostProfitableFarm.getGold())
-            {
-                mostProfitableFarm = farms.get(i);
-            } 
-        }
+        System.out.println("Total number of farm combinations: " + farms.size());
 
         //TODO do a quicksort or some fast sort of all the farms.
         //     then print them out nicely for some easy comparison.
         //     can probably call some sort of array util to sort them
+        //determine which permutation was the most profitable
+        Farm mostProfitableFarm = farms.get(0);
+        for (int i = 0; i < farms.size(); i++)
+        {
+            if (farms.get(i).getGold() > mostProfitableFarm.getGold())
+            {
+                mostProfitableFarm = farms.get(i);
+            }
+        }
 
         System.out.println("For day " + day + " of " + season + " starting with " + gold + " gold, " +
                            "the most profitable strategy you can pursue is:");
-        mostProfitableFarm.printStrategy();
-    }    
+        mostProfitableFarm.print();
+    }
 }

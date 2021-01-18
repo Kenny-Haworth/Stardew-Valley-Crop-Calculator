@@ -6,18 +6,26 @@
  * This class can represent multiple growing crops with the same
  * status.
  */
-public class CropStatus extends Crop
+public class CropGroup extends Crop
 {
     int number; //the number of crops that are exactly the same as this one
     int age; //the number of days this plant has been alive
     boolean fullyGrown;
 
-    public CropStatus(Crop crop, int number)
+    public CropGroup(Crop crop, int number)
     {
         super(crop.getName(), crop.getBuyPrice(), crop.getSellPrice(), crop.getGrowthTime(), crop.getRegrowthTime(), crop.getNumHarvested(), crop.getChanceForMore());
-        age = 1;
+        age = 0;
         fullyGrown = false;
         this.number = number;
+    }
+
+    public CropGroup clone()
+    {
+        CropGroup cropGroup = new CropGroup(this, this.number);
+        cropGroup.setAge(this.age);
+        cropGroup.setFullyGrown(this.fullyGrown);
+        return cropGroup;
     }
 
     //advances the crop to a new a day
@@ -26,25 +34,68 @@ public class CropStatus extends Crop
         age++;
     }
 
-    //if this crop is ready to be harvested, returns the money amount for harvesting & selling it
+    //if this crop is ready to be harvested, returns the gold for harvesting & selling it
     //resets the age to 1 after first harvest if this crop can be reharvested
-    public int harvest()
+    //Takes the FarmEvent as a parameter to log the harvesting
+    public int harvest(FarmEvent event)
     {
         if (fullyGrown)
         {
             if (age == this.regrowthTime)
             {
+                int gold = 0;
+                if (chanceForMore != 0)
+                {
+                    gold = ((int) Math.floor((chanceForMore*number)/100)*getSellPrice());
+                }
+                else
+                {
+                    gold = number*getSellPrice();
+                }
+
                 age = 1;
-                return number*getSellPrice();
+                event.addHarvestedCrops(this, gold);
+                return gold;
             }
         }
         else if (age == this.growthTime)
         {
+            int gold = 0;
+            if (chanceForMore != 0)
+            {
+                gold = ((int) Math.floor((chanceForMore*number)/100)*getSellPrice());
+            }
+            else
+            {
+                gold = number*getSellPrice();
+            }
+
             age = 1;
             fullyGrown = true;
-            return number*getSellPrice();
+            event.addHarvestedCrops(this, gold);
+            return gold;
         }
         return 0;
+    }
+
+    public int getNumber() 
+    {
+        return this.number;
+    }
+
+    public int getAge() 
+    {
+        return this.age;
+    }
+
+    public void setAge(int age)
+    {
+        this.age = age;
+    }
+
+    public void setFullyGrown(boolean fullyGrown)
+    {
+        this.fullyGrown = fullyGrown;
     }
 
     /**

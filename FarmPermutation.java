@@ -4,7 +4,7 @@ import java.util.Set;
 
 public class FarmPermutation
 {
-    private Set<String> cachedFarms; //all farms that have already been seen //TODO compare static and nonstatic runtime; static will require saving gold amount with the String
+    private Set<String> cachedFarms; //all farms that have already been seen //TODO compare static and nonstatic runtime; static will require saving gold amount with the String //TODO overload hash function for array??
     private ArrayList<Farm> farmPermutations; //all unique farms with maximized spending
     private final ArrayList<Crop> validCrops;
     private final Farm farm; //the base farm to make all permutations of
@@ -26,8 +26,8 @@ public class FarmPermutation
 
     public ArrayList<Farm> calculateFarmPermutations()
     {
-        int[] numEachCrop = new int[validCrops.size()]; //the number of seeds to plant for each crop
-        permutate(numEachCrop, farm.getGold());
+        int[] numEachSeed = new int[validCrops.size()]; //the number of seeds to plant for each crop
+        permutate(numEachSeed, farm.getGold());
         return farmPermutations;
     }
 
@@ -41,32 +41,47 @@ public class FarmPermutation
      * Once a farm can no longer invest in any more crops (and it is not already seen
      * in the cache), it is a unique permutation and can be saved.
      * 
-     * Saving involes generating a Farm from the gold and CropStatus based on the numEachCrop array.
+     * Saving involes generating a Farm from the gold and CropGroup based on the numEachSeed array.
      * 
-     * @param numEachCrop The number of each valid crop to buy and plant
+     * @param numEachSeed The number of each valid crop to buy and plant
      * @param gold The amount of gold this farm currently has
-     * @return A farm permutation, not necessarily valid
      */
-    public void permutate(int[] numEachCrop, int gold)
+    public void permutate(int[] numEachSeed, int gold)
     {
         //base case
         //you cannot invest money into any more crops
         if (gold < leastExpensiveCropValue)
         {
             //construct a Farm from the seeds to plant
-            ArrayList<CropStatus> cropsToPlant = new ArrayList<>();
-            for (int i = 0; i < numEachCrop.length; i++)
+            ArrayList<CropGroup> seedsToPlant = new ArrayList<>();
+            for (int i = 0; i < numEachSeed.length; i++)
             {
-                if (numEachCrop[i] > 0)
+                if (numEachSeed[i] > 0)
                 {
-                    cropsToPlant.add(new CropStatus(validCrops.get(i), numEachCrop[i]));
+                    seedsToPlant.add(new CropGroup(validCrops.get(i), numEachSeed[i]));
                 }
             }
 
-            ArrayList<CropStatus> crops = new ArrayList<>(farm.getCrops());
-            crops.addAll(cropsToPlant);
+            //add the new seeds to the farm
+            ArrayList<CropGroup> currentCrops = farm.getCrops(); //the current crops on the farm
+            ArrayList<CropGroup> crops = new ArrayList<>(); //all the crops, with the new crops, on the farm
 
-            Farm newFarm = new Farm(farm.getCropTypes(), crops, gold, farm.getGoldCache(), farm.getDaysRemaining()-1, false);
+            //add the current crops
+            for (int i = 0; i < currentCrops.size(); i++)
+            {
+                crops.add(currentCrops.get(i).clone());
+            }
+
+            //add the new seeds
+            crops.addAll(seedsToPlant);
+
+            //logger
+            FarmEvent event = farm.getEvents().get(farm.getEvents().size()-1);
+            event.setSeedsPurchased(seedsToPlant);
+            event.setEndingGold(gold, farm.getGoldCache());
+
+            //unique permutation
+            Farm newFarm = new Farm(farm.getCropTypes(), crops, gold, farm.getGoldCache(), farm.getDaysRemaining()-1, farm.getEvents());
             farmPermutations.add(newFarm);
         }
         //recursive case
@@ -78,14 +93,14 @@ public class FarmPermutation
                 //only invest in crops that we have enough gold to purchase
                 if (gold >= validCrops.get(i).getBuyPrice())
                 {
-                    numEachCrop[i]++;
+                    numEachSeed[i]++;
 
                     //only calculate the permutation if it has not been seen before
-                    if (cachedFarms.add(arrayToString(numEachCrop)))
+                    if (cachedFarms.add(arrayToString(numEachSeed)))
                     {
-                        permutate(numEachCrop.clone(), gold - validCrops.get(i).getBuyPrice());
+                        permutate(numEachSeed.clone(), gold - validCrops.get(i).getBuyPrice());
                     }
-                    numEachCrop[i]--;
+                    numEachSeed[i]--;
                 }
             }
         }
@@ -99,7 +114,6 @@ public class FarmPermutation
         {
             string += array[i] + ",";
         }
-
         return string;
     }
 }
