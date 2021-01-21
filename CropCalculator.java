@@ -13,15 +13,16 @@ import java.util.Collections;
  *      buying = planting
  *      harvesting = selling
  * 
- * Such that, if I comment "harvest crops here", I mean we are both harvesting and selling them,
- * and if I comment "plant seeds here", it means we are both buying the seeds and planting them.
+ * Such that, if you see a method harvest(), I mean we are both harvesting and selling them,
+ * and if see a comment "purchase seeds", it means we are both buying the seeds and planting them.
  * Buying and planting, and harvesting and selling, always happen on the same day.
  * 
  * In the case of selling, I assume you will sell all your crops through the Shipping Box, meaning
  * the money is obtained the following day. While this is less lucrative (as you are unable to
- * invest in crops as soon), according to the wiki: https://stardewcommunitywiki.com/Shipping
+ * invest in crops as soon), according to the wiki at https://stardewcommunitywiki.com/Shipping:
  *      "Items sold to merchants are not included in the statistics on the Collection tab, nor do they count towards shipping-specific Achievements."
- * Thus, it is best the player sells all of their crops through the Shipping Box.
+ * Thus, it is best the player sells all of their crops through the Shipping Box, and it is what
+ * this algorithm assumes you will do.
  */
 
 //TODO
@@ -110,9 +111,9 @@ public class CropCalculator
     public static void main(String[] args)
     {
         //editable variables
-        final int day = 20;
+        final int day = 15; //1
         final SEASON season = SEASON.SUMMER;
-        final int gold = 100; //note here that when gold increases beyond a reasonable level, algorithm runtime drastically increases,
+        final int gold = 350; //27 //note here that when gold increases beyond a reasonable level, algorithm runtime drastically increases,
                              //as there are many more combinations possible. However, once player energy is factored in, gold will
                              //have a cap number for increasing runtime (e.g. a value of gold over x no longer makes the program slower).
                              //Specifically, this cap = the most expensive crop * number of squares the player can water in a day
@@ -137,12 +138,16 @@ public class CropCalculator
 
         //sort the crops in descending order of buy price (most expensive crops first)
         Collections.sort(crops);
+
+        //first time setup
         int daysRemaining = MAX_DAYS - day;
         ArrayList<Farm> farms = new ArrayList<>();
-        Farm startingFarm = new Farm(crops, null, gold, 0, daysRemaining, null);
+        Farm.initialize(crops, daysRemaining+1);
+        Farm.update();
+        Farm startingFarm = new Farm(null, gold, 0, null);
         farms.add(startingFarm);
+        double startTime = System.nanoTime();
 
-        //TODO a loading or status bar would go nicely here
         //simulate every possible permutation of farms
         //this is a breadth-first search
         for (int i = 0; i < daysRemaining+1; i++) //plus one to ensure we have a FarmEvent log for the last day
@@ -156,15 +161,16 @@ public class CropCalculator
             }
             System.out.println("Permutations: " + newFarms.size());
 
+            Farm.update();
             farms.clear();
             farms = newFarms;
         }
+        double endTime = System.nanoTime() - startTime;
 
         System.out.println("Total number of farm combinations: " + farms.size());
 
-        //TODO do a quicksort or some fast sort of all the farms.
+        //TODO overload Farm comparable function for sorting
         //     then print them out nicely for some easy comparison.
-        //     can probably call some sort of array util to sort them
         //determine which permutation was the most profitable
         Farm mostProfitableFarm = farms.get(0);
         for (int i = 0; i < farms.size(); i++)
@@ -178,5 +184,6 @@ public class CropCalculator
         System.out.println("For day " + day + " of " + season + " starting with " + gold + " gold, " +
                            "the most profitable strategy you can pursue is:");
         mostProfitableFarm.print();
+        System.out.println("Time: " + endTime/1000000000 + " seconds");
     }
 }

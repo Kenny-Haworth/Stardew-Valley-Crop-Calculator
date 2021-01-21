@@ -2,7 +2,7 @@ import java.util.Random;
 
 public class Crop implements Comparable<Crop>
 {
-    private String name; //TODO useful when debugging, and eventually for printing out a strategy //TODO change back to private
+    private String name;
     private int buyPrice;
     protected int sellPrice;
     protected int growthTime;

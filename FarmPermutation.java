@@ -1,6 +1,4 @@
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
 public class FarmPermutation
 {
@@ -71,7 +69,7 @@ public class FarmPermutation
             {
                 if (numEachSeed[j] != 0)
                 {
-                    permutate2(numEachSeed.clone(), gold, j);
+                    permutate(numEachSeed.clone(), gold, j);
                     break;
                 }
             }
@@ -89,7 +87,7 @@ public class FarmPermutation
      * @param numEachSeed The number of each valid crop to buy and plant
      * @param gold The amount of gold this farm currently has
      */
-    public void permutate2(int[] numEachSeed, int gold, int index)
+    public void permutate(int[] numEachSeed, int gold, int index)
     {
         int counter = numEachSeed[index];
         for (int i = 0; i < counter; i++)
@@ -122,7 +120,7 @@ public class FarmPermutation
             {
                 if (numEachSeed[j] != 0)
                 {
-                    permutate2(numEachSeed.clone(), gold, j);
+                    permutate(numEachSeed.clone(), gold, j);
                     break;
                 }
             }
@@ -160,6 +158,6 @@ public class FarmPermutation
         event.setEndingGold(gold, farm.getGoldCache());
 
         //unique permutation
-        farmPermutations.add(new Farm(farm.getCropTypes(), crops, gold, farm.getGoldCache(), farm.getDaysRemaining()-1, farm.getEvents()));
+        farmPermutations.add(new Farm(crops, gold, farm.getGoldCache(), farm.getEvents()));
     }
 }
