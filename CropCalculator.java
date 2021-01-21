@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * This program calculates the most lucrative combination of planting crops in Stardew Valley.
@@ -134,6 +135,8 @@ public class CropCalculator
                 break;
         }
 
+        //sort the crops in descending order of buy price (most expensive crops first)
+        Collections.sort(crops);
         int daysRemaining = MAX_DAYS - day;
         ArrayList<Farm> farms = new ArrayList<>();
         Farm startingFarm = new Farm(crops, null, gold, 0, daysRemaining, null);
@@ -151,6 +154,7 @@ public class CropCalculator
             {
                 newFarms.addAll(farm.simulateDay());
             }
+            System.out.println("Permutations: " + newFarms.size());
 
             farms.clear();
             farms = newFarms;

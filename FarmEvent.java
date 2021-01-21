@@ -139,7 +139,7 @@ public class FarmEvent
                                                       cropsHarvested.get(i).getNumber(),
                                                       goldFromHarvestedCrops.get(i));
 
-                //TODO here you could computer chanceForMore and tell the player if they gained any extra crops during harvesting
+                //TODO here you could compute chanceForMore and tell the player if they gained any extra crops during harvesting
             }
             System.out.println();
 

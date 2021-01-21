@@ -85,7 +85,7 @@ public class Farm
             int amount = cropGroup.harvest(event);
             goldCache += amount;
 
-            if (!cropGroup.canProduceMore(daysRemaining))
+            if (!cropGroup.canProduceMore(daysRemaining)) //TODO blueberries go POOF if you do this around the last days
             {
                 worthlessCrops.add(cropGroup);
             }
@@ -96,6 +96,7 @@ public class Farm
     public ArrayList<Farm> invest()
     {
         //filter out all seeds that could not possibly yield crops before the end of the season
+        //TODO this should be the same for all farms, and located in invest()
         ArrayList<Crop> invalidCrops = new ArrayList<>();
         for (Crop cropType : cropTypes)
         {
@@ -106,10 +107,10 @@ public class Farm
         }
         cropTypes.removeAll(invalidCrops);
 
-        //there are no possible crops to plant, so return this farm only.
-        //note that if you don't have enough gold to buy the least expensive crop,
-        //you can also return this farm immediately here, but FarmPermutation handles this case
-        if (cropTypes.size() == 0)
+        //there are no possible crops to plant (either because they won't grow by the)
+        //end of the season or you don't have enough money to buy even the least
+        //expensive crop) so return this farm
+        if (cropTypes.size() == 0 || gold < cropTypes.get(cropTypes.size()-1).getBuyPrice())
         {
             ArrayList<Farm> noPermutation = new ArrayList<>();
             daysRemaining--;

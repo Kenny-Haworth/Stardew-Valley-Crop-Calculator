@@ -1,6 +1,6 @@
 import java.util.Random;
 
-public class Crop
+public class Crop implements Comparable<Crop>
 {
     private String name; //TODO useful when debugging, and eventually for printing out a strategy //TODO change back to private
     private int buyPrice;
@@ -21,6 +21,13 @@ public class Crop
         this.regrowthTime = regrowthTime;
         this.numHarvested = numHarvested;
         this.chanceForMore = chanceForMore;
+    }
+
+    //sorts crops into descending order of buy price
+    @Override
+    public int compareTo(Crop other)
+    {
+        return other.buyPrice - this.buyPrice;
     }
 
     //indicates whether this crop can continue to grow after harvest
