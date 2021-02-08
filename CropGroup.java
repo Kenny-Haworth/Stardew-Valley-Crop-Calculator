@@ -2,7 +2,7 @@
  * This class keeps track of a growing crop's status, including:
  *      the number of days the crop has been growing
  *      whether the crop can be harvested
- *      
+ *
  * This class can represent multiple growing crops with the same
  * status.
  */
@@ -15,11 +15,13 @@ public class CropGroup extends Crop
     public CropGroup(Crop crop, int number)
     {
         super(crop.getName(), crop.getBuyPrice(), crop.getSellPrice(), crop.getGrowthTime(), crop.getRegrowthTime(), crop.getNumHarvested(), crop.getChanceForMore());
+        this.number = number;
         age = 0;
         fullyGrown = false;
-        this.number = number;
     }
 
+    //creates a deep copy of this crop group
+    @Override
     public CropGroup clone()
     {
         CropGroup cropGroup = new CropGroup(this, this.number);
@@ -46,7 +48,7 @@ public class CropGroup extends Crop
                 int gold = 0;
                 if (chanceForMore != 0)
                 {
-                    gold = ((int) Math.floor((chanceForMore*number)/100)*getSellPrice());
+                    gold = (int) Math.floor((chanceForMore*number)/100)*getSellPrice();
                 }
                 else
                 {
@@ -54,7 +56,7 @@ public class CropGroup extends Crop
                 }
 
                 age = 1;
-                event.addHarvestedCrops(this, gold);
+                event.addHarvestedCrops(this.clone(), gold);
                 return gold;
             }
         }
@@ -63,7 +65,7 @@ public class CropGroup extends Crop
             int gold = 0;
             if (chanceForMore != 0)
             {
-                gold = ((int) Math.floor((chanceForMore*number)/100)*getSellPrice());
+                gold = (int) Math.floor((chanceForMore*number)/100)*getSellPrice();
             }
             else
             {
@@ -72,28 +74,28 @@ public class CropGroup extends Crop
 
             age = 1;
             fullyGrown = true;
-            event.addHarvestedCrops(this, gold);
+            event.addHarvestedCrops(this.clone(), gold);
             return gold;
         }
         return 0;
     }
 
-    public int getNumber() 
+    public int getNumber()
     {
         return this.number;
     }
 
-    public int getAge() 
+    public int getAge()
     {
         return this.age;
     }
 
-    public void setAge(int age)
+    private void setAge(int age)
     {
         this.age = age;
     }
 
-    public void setFullyGrown(boolean fullyGrown)
+    private void setFullyGrown(boolean fullyGrown)
     {
         this.fullyGrown = fullyGrown;
     }
@@ -112,7 +114,7 @@ public class CropGroup extends Crop
         {
             return false;
         }
-        
+
         return true;
     }
 }

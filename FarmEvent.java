@@ -22,7 +22,7 @@ public class FarmEvent
         this.startingGold = startingGold;
         this.endingGold = 0;
         this.endingGoldCache = 0;
-        day = MAX_DAYS - daysRemaining;
+        this.day = MAX_DAYS - daysRemaining;
         this.cropsHarvested = new ArrayList<>();
         this.goldFromHarvestedCrops = new ArrayList<>();
         this.seedsPurchased = new ArrayList<>();
@@ -37,9 +37,66 @@ public class FarmEvent
         }
     }
 
+    private FarmEvent(int day,
+                      int startingGold,
+                      int endingGold,
+                      int endingGoldCache,
+                      ArrayList<CropGroup> cropsHarvested,
+                      ArrayList<Integer> goldFromHarvestedCrops,
+                      ArrayList<CropGroup> seedsPurchased,
+                      ArrayList<CropGroup> startingCrops)
+    {
+        this.day = day;
+        this.startingGold = startingGold;
+        this.endingGold = endingGold;
+        this.endingGoldCache = endingGoldCache;
+        this.cropsHarvested = new ArrayList<>(cropsHarvested);
+        this.goldFromHarvestedCrops = new ArrayList<>(goldFromHarvestedCrops);
+        this.seedsPurchased = new ArrayList<>(seedsPurchased);
+        this.startingCrops = new ArrayList<>(startingCrops);
+    }
+
+    //creates and returns a deep copy of this FarmEvent
+    @Override
+    public FarmEvent clone()
+    {
+        ArrayList<CropGroup> cropsHarvestedClone = new ArrayList<>();
+        for (CropGroup cropGroup : this.cropsHarvested)
+        {
+            cropsHarvestedClone.add(cropGroup.clone());
+        }
+
+        ArrayList<Integer> goldFromHarvestedCropsClone = new ArrayList<>();
+        for (Integer gold : this.goldFromHarvestedCrops)
+        {
+            goldFromHarvestedCropsClone.add(gold);
+        }
+
+        ArrayList<CropGroup> seedsPurchasedClone = new ArrayList<>();
+        for (CropGroup cropGroup : this.seedsPurchased)
+        {
+            seedsPurchasedClone.add(cropGroup.clone());
+        }
+
+        ArrayList<CropGroup> startingCropsClone = new ArrayList<>();
+        for (CropGroup cropGroup : this.startingCrops)
+        {
+            startingCropsClone.add(cropGroup.clone());
+        }
+
+        return new FarmEvent(this.day,
+                             this.startingGold,
+                             this.endingGold,
+                             this.endingGoldCache,
+                             cropsHarvestedClone,
+                             goldFromHarvestedCropsClone,
+                             seedsPurchasedClone,
+                             startingCropsClone);
+    }
+
     /**
      * Keeps track of the crops harvested for the day.
-     * 
+     *
      * @param cropGroup The crop(s) harvested
      * @param gold The amount of gold earned for harvesting these crops
      */
@@ -51,10 +108,10 @@ public class FarmEvent
 
     /**
      * Keeps track of the seeds purchased for the day.
-     * 
+     *
      * @param seeds An arraylist of all the different types of seeds purchased.
      *              The amount purchased is saved within the CropGroup.
-     * 
+     *
      *              If seeds is null, sets an empty list.
      */
     public void setSeedsPurchased(ArrayList<CropGroup> seeds)
@@ -71,32 +128,31 @@ public class FarmEvent
 
     /**
      * Saves the farm's gold at the end of the day.
-     * 
+     *
      * @param endingGold The gold the player has at the end of the day
-     * @param endingGoldCache The gold the player will gain by tomorrow
+     * @param endingGoldCache The gold the player will gain tomorrow
      *                        from selling the crops they sold today
      */
-    public void setEndingGold(int endingGold, int endingGoldCache) 
+    public void setEndingGold(int endingGold, int endingGoldCache)
     {
         this.endingGold = endingGold;
         this.endingGoldCache = endingGoldCache;
     }
 
     //TODO output this to a text file! By CropCalculator.java sorting all the farms, it could be printed to the file in order of what is most lucrative
-
     /**
      * Outputs only the strategy of this farm, with no extra information.
-     * 
+     *
      * This tells you exactly what to do on each day for making the most
      * lucrative farm possible without clogging the output with unnecessary
      * information.
      */
-    //TODO change this to printAll() and break up algorithm into easier to manage methods
+    //TODO change this to printAll() and break up prints into easier to manage methods
     public void printStrategy()
     {
         System.out.println("Day " + day);
         System.out.println("\tStarting gold: " + startingGold);
-        
+
         //print the crops this farm started with
         if (startingCrops.size() > 0)
         {
@@ -129,11 +185,11 @@ public class FarmEvent
             //sell the crops, x gold each, for a sum of y gold and a grand total of z gold
             System.out.println("\tProfit from harvested crops:");
             System.out.print("\t\t"); //TODO try to concatenate
-            System.out.format("%20s%20s%20s%20s", "Crop", "Sell Price", "Number", "Total\n");
+            System.out.format("%20s%20s%20s%20s", "Crop", "Sell Price", "Number", "Total");
 
             for (int i = 0; i < cropsHarvested.size(); i++)
             {
-                System.out.print("\t\t");
+                System.out.print("\n\t\t");
                 System.out.format("%20s%20d%20s%20s", cropsHarvested.get(i).getName(),
                                                       cropsHarvested.get(i).getSellPrice(),
                                                       cropsHarvested.get(i).getNumber(),
@@ -151,7 +207,7 @@ public class FarmEvent
                 {
                     totalGold += gold;
                 }
-    
+
                 System.out.print("\t\t");
                 System.out.format("%20s%20s%20s%20d", "", "", "", totalGold);
                 System.out.println();
@@ -177,11 +233,11 @@ public class FarmEvent
             //purchase the seeds, x gold each, for a sum of y gold and a grand total of z gold
             System.out.println("\tCost of purchased seeds:");
             System.out.print("\t\t"); //TODO try to concatenate
-            System.out.format("%20s%20s%20s%20s", "Seed", "Buy Price", "Number", "Total\n");
+            System.out.format("%20s%20s%20s%20s", "Seed", "Buy Price", "Number", "Total");
 
             for (CropGroup seedPurchased : seedsPurchased)
             {
-                System.out.print("\t\t");
+                System.out.print("\n\t\t");
                 System.out.format("%20s%20d%20s%20s", seedPurchased.getName(),
                                                       seedPurchased.getBuyPrice(),
                                                       seedPurchased.getNumber(),
@@ -197,22 +253,28 @@ public class FarmEvent
                 {
                     totalGold += seedPurchased.getBuyPrice()*seedPurchased.getNumber();
                 }
-    
+
                 System.out.print("\t\t");
                 System.out.format("%20s%20s%20s%20d", "", "", "", totalGold);
                 System.out.println();
             }
-            System.out.println("\tPlanted all seeds on the farm.");
+            System.out.println("\tPlanted and watered all seeds on the farm.");
         }
         else
         {
-            System.out.println("\tNo seeds were purchased."); //TODO if because of energy constraints, say so
+            System.out.println("\tNo seeds were purchased."); //TODO if because of energy/space constraints, say so
         }
 
         System.out.println("\tEnding gold: " + endingGold);
-        int totalEndingGold = endingGold+endingGoldCache;
 
+        int totalEndingGold = endingGold+endingGoldCache;
         int goldDifference = totalEndingGold-startingGold;
+
+        if (day == MAX_DAYS)
+        {
+            goldDifference -= endingGoldCache;
+        }
+
         if (goldDifference > 0)
         {
             System.out.println("\tNet gold difference for today: +" + goldDifference + "\n");
@@ -250,10 +312,10 @@ public class FarmEvent
      *      all crops harvested on this day (if any)
      *      the seeds & number of seeds purchased on this day (also assumed to be planted on the same day)
      *      the stage of life of every crop on this day
-     *      
+     *
      * It would also be useful to show the player when something special happens,
      * like you harvest an extra crop from the % chance or you make a giant crop from the % chance.
-     * 
+     *
      * At some point, also display the quality of crops that were harvested
      */
     public void printAll()

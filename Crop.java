@@ -1,5 +1,3 @@
-import java.util.Random;
-
 public class Crop implements Comparable<Crop>
 {
     private String name;
@@ -9,11 +7,9 @@ public class Crop implements Comparable<Crop>
     protected int regrowthTime;
     private int numHarvested; //the number of times this crop can be harvested at harvest time
     protected int chanceForMore; //the chance for more of this crop to be harvested at harvest time (% chance)
-    Random random;
 
     public Crop(String name, int buyPrice, int sellPrice, int growthTime, int regrowthTime, int numHarvested, int chanceForMore)
     {
-        random = new Random();
         this.name = name;
         this.buyPrice = buyPrice;
         this.sellPrice = sellPrice;
@@ -31,12 +27,12 @@ public class Crop implements Comparable<Crop>
     }
 
     //indicates whether this crop can continue to grow after harvest
-    public boolean canRegrow()
+    protected boolean canRegrow()
     {
         return (regrowthTime != 0);
     }
 
-    public int getBuyPrice() 
+    public int getBuyPrice()
     {
         return this.buyPrice;
     }
@@ -46,27 +42,27 @@ public class Crop implements Comparable<Crop>
         return this.sellPrice*this.numHarvested;
     }
 
-    public int getGrowthTime() 
+    public int getGrowthTime()
     {
         return this.growthTime;
     }
 
-    public int getRegrowthTime() 
+    protected int getRegrowthTime()
     {
         return this.regrowthTime;
     }
 
-    public int getNumHarvested() 
+    protected int getNumHarvested()
     {
         return this.numHarvested;
     }
 
-    public int getChanceForMore()
+    protected int getChanceForMore()
     {
         return this.chanceForMore;
     }
 
-    public String getName() 
+    public String getName()
     {
         return this.name;
     }
