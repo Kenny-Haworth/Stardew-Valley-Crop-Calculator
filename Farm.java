@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Farm implements Comparable<Farm>
 {
@@ -9,13 +10,18 @@ public class Farm implements Comparable<Farm>
     private int goldCache; //crops are not sold immediately after harvesting; the gold is obtained the following day
     private ArrayList<FarmEvent> events; //a snapshot of the events that occurred on this farm every day
     private FarmEvent event; //the events for the current day on this farm
+    private static HashMap<String,ArrayList<Farm>> farmMemos;
 
     public Farm(ArrayList<CropGroup> crops, int gold, int goldCache, ArrayList<FarmEvent> events)
     {
         this.gold = gold;
         this.goldCache = goldCache;
         this.event = null;
-
+        
+        if (farmMemos == null)
+        {
+            farmMemos = new HashMap<String,ArrayList<Farm>>();
+        }
         this.crops = new ArrayList<>();
 
         if (crops != null)
@@ -163,8 +169,21 @@ public class Farm implements Comparable<Farm>
         //calculate all permutations of farms
         else
         {
-            FarmPermutation permutation = new FarmPermutation(this, cropTypes); //TODO no need to pass in cropTypes, and make static function
-            return permutation.calculateFarmPermutations();
+            String hashString = this.toString();
+            for( int i = 0; i < cropTypes.size(); i++)
+            {
+                hashString += cropTypes.get(i).getBuyPrice();
+            } //min cropis 10, then 0-9 same //optimiize the hashing Fn
+
+            //System.out.print( hashString );
+            if( !farmMemos.containsKey(hashString))
+            {
+                FarmPermutation permutation = new FarmPermutation(this, cropTypes);
+                farmMemos.put(hashString, permutation.calculateFarmPermutations() );
+               // System.out.print( String.format("-> Inserting key [%d]",farmMemos.keySet().size()));
+            }
+            //System.out.println();
+            return farmMemos.get(hashString);
         }
     }
 

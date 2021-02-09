@@ -71,4 +71,9 @@ public class Crop implements Comparable<Crop>
     {
         return this.name;
     }
+
+    public String toString()
+    {
+        return this.getName() + "($" + this.buyPrice + ")";
+    }
 }
