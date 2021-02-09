@@ -4,7 +4,7 @@ import java.util.Set;
 
 public class FarmPermutation
 {
-    private Set<String> cachedFarms; //all farms that have already been seen //TODO compare static and nonstatic runtime; static will require saving gold amount with the String
+    private static Set<String> cachedFarms; //all farms that have already been seen //TODO compare static and nonstatic runtime; static will require saving gold amount with the String
     private ArrayList<Farm> farmPermutations; //all unique farms with maximized spending
     private final ArrayList<Crop> validCrops;
     private final Farm farm; //the base farm to make all permutations of
@@ -16,7 +16,9 @@ public class FarmPermutation
     public FarmPermutation(Farm farm, ArrayList<Crop> validCrops)
     {
         this.farm = farm;
-        cachedFarms = new HashSet<>();
+        if( cachedFarms == null ){
+            cachedFarms = new HashSet<>();
+        }
         farmPermutations = new ArrayList<>();
         numCropsOnFarm = farm.getNumCrops();
         maxPlantableSeeds = Energy.maxWaterableTiles() - numCropsOnFarm;
