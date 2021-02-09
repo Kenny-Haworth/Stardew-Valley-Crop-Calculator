@@ -14,7 +14,13 @@ public class CropGroup extends Crop
 
     public CropGroup(Crop crop, int number)
     {
-        super(crop.getName(), crop.getBuyPrice(), crop.getSellPrice(), crop.getGrowthTime(), crop.getRegrowthTime(), crop.getNumHarvested(), crop.getChanceForMore());
+        super(crop.getName(),
+              crop.getBuyPrice(),
+              crop.getIndividualSellPrice(),
+              crop.getGrowthTime(),
+              crop.getRegrowthTime(),
+              crop.getNumHarvested(),
+              crop.getChanceForMore());
         this.number = number;
         age = 0;
         fullyGrown = false;
@@ -37,7 +43,7 @@ public class CropGroup extends Crop
     }
 
     //if this crop is ready to be harvested, returns the gold for harvesting & selling it
-    //resets the age to 1 after first harvest if this crop can be reharvested
+    //resets the age to 0 after first harvest if this crop can be reharvested
     //Takes the FarmEvent as a parameter to log the harvesting
     public int harvest(FarmEvent event)
     {
@@ -48,14 +54,14 @@ public class CropGroup extends Crop
                 int gold = 0;
                 if (chanceForMore != 0)
                 {
-                    gold = (int) Math.floor((chanceForMore*number)/100)*getSellPrice();
+                    gold = (int) (Math.floor((chanceForMore*number)/100)+1)*getSellPrice();
                 }
                 else
                 {
                     gold = number*getSellPrice();
                 }
 
-                age = 1;
+                age = 0;
                 event.addHarvestedCrops(this.clone(), gold);
                 return gold;
             }
@@ -65,14 +71,14 @@ public class CropGroup extends Crop
             int gold = 0;
             if (chanceForMore != 0)
             {
-                gold = (int) Math.floor((chanceForMore*number)/100)*getSellPrice();
+                gold = (int) (Math.floor((chanceForMore*number)/100)+1)*getSellPrice();
             }
             else
             {
                 gold = number*getSellPrice();
             }
 
-            age = 1;
+            age = 0;
             fullyGrown = true;
             event.addHarvestedCrops(this.clone(), gold);
             return gold;

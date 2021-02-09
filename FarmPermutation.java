@@ -85,9 +85,8 @@ public class FarmPermutation
     /**
      * This function uses a special type of processing known as recursive memoization.
      *
-     * Every type of farm is generated, investing money in one crop at a time and
-     * working down the tree until there is no money left. Every farm is saved to a
-     * cache. If the farm that is generated is already in the cache, it is ignored.
+     * Every type of farm is generated, investing money in one crop at a time. Every
+     * farm is saved to a cache. If the farm that is generated is already in the cache, it is ignored.
      *
      * There are two base cases:
      *      1) The farm can no longer invest in any more crops

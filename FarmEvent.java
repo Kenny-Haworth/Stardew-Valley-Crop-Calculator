@@ -1,3 +1,7 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 /**
@@ -7,6 +11,7 @@ import java.util.ArrayList;
 public class FarmEvent
 {
     private static final int MAX_DAYS = 28;
+    private static PrintWriter writer = null;
     private final int day;
     private final int startingGold;
     private int endingGold;
@@ -15,8 +20,8 @@ public class FarmEvent
     private ArrayList<Integer> goldFromHarvestedCrops;
     private ArrayList<CropGroup> seedsPurchased;
     private ArrayList<CropGroup> startingCrops;
-    //TODO all crops that are on the farm at the end of the day
 
+    // TODO all crops that are on the farm at the end of the day
     public FarmEvent(int daysRemaining, int startingGold, ArrayList<CropGroup> startingCrops)
     {
         this.startingGold = startingGold;
@@ -67,7 +72,7 @@ public class FarmEvent
         }
 
         ArrayList<Integer> goldFromHarvestedCropsClone = new ArrayList<>();
-        for (Integer gold : this.goldFromHarvestedCrops)
+        for (int gold : this.goldFromHarvestedCrops)
         {
             goldFromHarvestedCropsClone.add(gold);
         }
@@ -150,54 +155,64 @@ public class FarmEvent
     //TODO change this to printAll() and break up prints into easier to manage methods
     public void printStrategy()
     {
-        System.out.println("Day " + day);
-        System.out.println("\tStarting gold: " + startingGold);
+        try
+        {
+            writer = new PrintWriter(new FileOutputStream(new File("log.txt"), true));
+        }
+        catch (FileNotFoundException e)
+        {
+            writer.println("Error, Unable to create or write to log file...");
+            e.printStackTrace();
+        }
+
+        writer.println("Day " + day);
+        writer.println("\tStarting gold: " + startingGold);
 
         //print the crops this farm started with
         if (startingCrops.size() > 0)
         {
-            System.out.println("\tCrops on the farm at the beginning of the day:");
-            System.out.format("\t\t%20s%20s%20s", "Crop", "Number", "Age");
+            writer.println("\tCrops on the farm at the beginning of the day:");
+            writer.format("\t\t%20s%20s%20s", "Crop", "Number", "Age");
 
             for (CropGroup cropGround : startingCrops)
             {
-                System.out.print("\n\t\t");
-                System.out.format("%20s%20d%20d", cropGround.getName(),
-                                                  cropGround.getNumber(),
-                                                  cropGround.getAge());
+                writer.print("\n\t\t");
+                writer.format("%20s%20d%20d", cropGround.getName(),
+                                              cropGround.getNumber(),
+                                              cropGround.getAge());
             }
-            System.out.println();
+            writer.println();
         }
         else
         {
-            System.out.println("\tBegan the day with no crops planted on the farm.");
+            writer.println("\tBegan the day with no crops planted on the farm.");
         }
 
         //check for any harvested crops, display the number harvested as totals
         if (cropsHarvested.size() > 0)
         {
-            System.out.println("\tHarvested crops:");
+            writer.println("\tHarvested crops:");
             for (CropGroup cropGroup : cropsHarvested)
             {
-                System.out.println("\t\t" + cropGroup.getNumber() + " " + cropGroup.getName());
+                writer.println("\t\t" + cropGroup.getNumber() + " " + cropGroup.getName());
             }
 
             //sell the crops, x gold each, for a sum of y gold and a grand total of z gold
-            System.out.println("\tProfit from harvested crops:");
-            System.out.print("\t\t"); //TODO try to concatenate
-            System.out.format("%20s%20s%20s%20s", "Crop", "Sell Price", "Number", "Total");
+            writer.println("\tProfit from harvested crops:");
+            writer.print("\t\t"); //TODO try to concatenate
+            writer.format("%20s%20s%20s%20s", "Crop", "Sell Price", "Number", "Total");
 
             for (int i = 0; i < cropsHarvested.size(); i++)
             {
-                System.out.print("\n\t\t");
-                System.out.format("%20s%20d%20s%20s", cropsHarvested.get(i).getName(),
-                                                      cropsHarvested.get(i).getSellPrice(),
-                                                      cropsHarvested.get(i).getNumber(),
-                                                      goldFromHarvestedCrops.get(i));
+                writer.print("\n\t\t");
+                writer.format("%20s%20d%20s%20s", cropsHarvested.get(i).getName(),
+                                                  cropsHarvested.get(i).getSellPrice(),
+                                                  cropsHarvested.get(i).getNumber(),
+                                                  goldFromHarvestedCrops.get(i));
 
                 //TODO here you could compute chanceForMore and tell the player if they gained any extra crops during harvesting
             }
-            System.out.println();
+            writer.println();
 
             //display a grand total
             if (cropsHarvested.size() > 1)
@@ -208,42 +223,42 @@ public class FarmEvent
                     totalGold += gold;
                 }
 
-                System.out.print("\t\t");
-                System.out.format("%20s%20s%20s%20d", "", "", "", totalGold);
-                System.out.println();
+                writer.print("\t\t");
+                writer.format("%20s%20s%20s%20d", "", "", "", totalGold);
+                writer.println();
             }
 
             //tell the player they will receive their money tomorrow
-            System.out.println("\t\tA total of " + endingGoldCache + " gold will be added to your account tomorrow.");
+            writer.println("\t\tA total of " + endingGoldCache + " gold will be added to your account tomorrow.");
         }
         else
         {
-            System.out.println("\tNo crops could be harvested.");
+            writer.println("\tNo crops could be harvested.");
         }
 
         //check for any investments
         if (seedsPurchased.size() > 0)
         {
-            System.out.println("\tPurchased seeds:");
+            writer.println("\tPurchased seeds:");
             for (CropGroup cropGroup : seedsPurchased)
             {
-                System.out.println("\t\t" + cropGroup.getNumber() + " " + cropGroup.getName());
+                writer.println("\t\t" + cropGroup.getNumber() + " " + cropGroup.getName());
             }
 
             //purchase the seeds, x gold each, for a sum of y gold and a grand total of z gold
-            System.out.println("\tCost of purchased seeds:");
-            System.out.print("\t\t"); //TODO try to concatenate
-            System.out.format("%20s%20s%20s%20s", "Seed", "Buy Price", "Number", "Total");
+            writer.println("\tCost of purchased seeds:");
+            writer.print("\t\t"); //TODO try to concatenate
+            writer.format("%20s%20s%20s%20s", "Seed", "Buy Price", "Number", "Total");
 
             for (CropGroup seedPurchased : seedsPurchased)
             {
-                System.out.print("\n\t\t");
-                System.out.format("%20s%20d%20s%20s", seedPurchased.getName(),
-                                                      seedPurchased.getBuyPrice(),
-                                                      seedPurchased.getNumber(),
-                                                      seedPurchased.getBuyPrice()*seedPurchased.getNumber());
+                writer.print("\n\t\t");
+                writer.format("%20s%20d%20s%20s", seedPurchased.getName(),
+                                                  seedPurchased.getBuyPrice(),
+                                                  seedPurchased.getNumber(),
+                                                  seedPurchased.getBuyPrice()*seedPurchased.getNumber());
             }
-            System.out.println();
+            writer.println();
 
             //display a grand total
             if (seedsPurchased.size() > 1)
@@ -254,18 +269,18 @@ public class FarmEvent
                     totalGold += seedPurchased.getBuyPrice()*seedPurchased.getNumber();
                 }
 
-                System.out.print("\t\t");
-                System.out.format("%20s%20s%20s%20d", "", "", "", totalGold);
-                System.out.println();
+                writer.print("\t\t");
+                writer.format("%20s%20s%20s%20d", "", "", "", totalGold);
+                writer.println();
             }
-            System.out.println("\tPlanted and watered all seeds on the farm.");
+            writer.println("\tPlanted and watered all seeds on the farm.");
         }
         else
         {
-            System.out.println("\tNo seeds were purchased."); //TODO if because of energy/space constraints, say so
+            writer.println("\tNo seeds were purchased."); //TODO if because of energy/space constraints, say so
         }
 
-        System.out.println("\tEnding gold: " + endingGold);
+        writer.println("\tEnding gold: " + endingGold);
 
         int totalEndingGold = endingGold+endingGoldCache;
         int goldDifference = totalEndingGold-startingGold;
@@ -277,12 +292,13 @@ public class FarmEvent
 
         if (goldDifference > 0)
         {
-            System.out.println("\tNet gold difference for today: +" + goldDifference + "\n");
+            writer.println("\tNet gold difference for today: +" + goldDifference + "\n");
         }
         else //goldDifference <= 0
         {
-            System.out.println("\tNet gold difference for today: " + goldDifference + "\n");
+            writer.println("\tNet gold difference for today: " + goldDifference + "\n");
         }
+        writer.close();
     }
 
     /**

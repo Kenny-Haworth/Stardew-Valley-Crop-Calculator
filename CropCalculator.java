@@ -80,7 +80,7 @@ public class CropCalculator
 
     //all crop types, listed by season
 
-    //SUMMER                                       name              buyPrice       sellPrice     growthTime     regrowthTime     numHarvested     chanceForMore
+    //SUMMER                                               name              buyPrice       sellPrice     growthTime     regrowthTime     numHarvested     chanceForMore
     private static final Crop TOMATO = new Crop         ("Tomato",              50,            60,            11,            4,                1,                5);
     private static final Crop PEPPER = new Crop         ("Pepper",              40,            40,            5,             3,                1,                3);
     private static final Crop BLUEBERRY = new Crop      ("Blueberry",           80,            50,            13,            4,                3,                2);
@@ -112,7 +112,7 @@ public class CropCalculator
                               //have a cap number for increasing runtime (e.g. a value of gold over x no longer makes the program slower).
                               //Specifically, this cap = the most expensive crop * number of squares the player can water in a day
 
-        //define the player's energy
+        //define the player's energy //TODO include these variables in the log as well!
         final int numStardropsEaten = 0; //0-7
         final Level wateringCanLevel = Level.COPPER;
         final int farmingProficiencyLevel = 0; //0-10
@@ -172,22 +172,18 @@ public class CropCalculator
 
         System.out.println("Total number of farm permutations: " + farms.size());
 
-        //TODO overload Farm comparable function for sorting
-        //     then print them out nicely for some easy comparison.
-        //determine which permutation was the most profitable
-        Farm mostProfitableFarm = farms.get(0);
-        for (int i = 0; i < farms.size(); i++)
-        {
-            if (farms.get(i).getGold() > mostProfitableFarm.getGold())
-            {
-                mostProfitableFarm = farms.get(i);
-            }
-        }
+        Collections.sort(farms);
 
         System.out.println("For day " + day + " of " + season + " starting with " + gold + " gold " +
                            "and a maximum of " + Energy.maxWaterableTiles() + " waterable tiles a day, " +
                            "the most profitable strategy you can pursue is:");
-        mostProfitableFarm.print();
+
+        for (int i = 0; i < farms.size(); i++)
+        {
+            if (i%10 == 0) System.out.println(i);
+            farms.get(i).print();
+        }
+
         System.out.println("Time: " + endTime/1000000000 + " seconds");
     }
 }

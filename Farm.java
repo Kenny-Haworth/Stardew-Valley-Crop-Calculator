@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-public class Farm
+public class Farm implements Comparable<Farm>
 {
     private static ArrayList<Crop> cropTypes; //all unique types of crops
     private static int daysRemaining;
@@ -163,7 +163,7 @@ public class Farm
         //calculate all permutations of farms
         else
         {
-            FarmPermutation permutation = new FarmPermutation(this, cropTypes);
+            FarmPermutation permutation = new FarmPermutation(this, cropTypes); //TODO no need to pass in cropTypes, and make static function
             return permutation.calculateFarmPermutations();
         }
     }
@@ -205,5 +205,12 @@ public class Farm
         {
             event.printStrategy();
         }
+    }
+
+    //sorts the farms by order of profit
+    @Override
+    public int compareTo(Farm other)
+    {
+        return other.gold - this.gold;
     }
 }

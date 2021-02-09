@@ -1,12 +1,12 @@
 public class Crop implements Comparable<Crop>
 {
-    private String name;
-    private int buyPrice;
-    protected int sellPrice;
-    protected int growthTime;
-    protected int regrowthTime;
-    private int numHarvested; //the number of times this crop can be harvested at harvest time
-    protected int chanceForMore; //the chance for more of this crop to be harvested at harvest time (% chance)
+    private final String name;
+    private final int buyPrice;
+    protected final int sellPrice;
+    protected final int growthTime;
+    protected final int regrowthTime;
+    private final int numHarvested; //the number of times this crop can be harvested at harvest time
+    protected final int chanceForMore; //the chance for more of this crop to be harvested at harvest time (% chance)
 
     public Crop(String name, int buyPrice, int sellPrice, int growthTime, int regrowthTime, int numHarvested, int chanceForMore)
     {
@@ -35,6 +35,11 @@ public class Crop implements Comparable<Crop>
     public int getBuyPrice()
     {
         return this.buyPrice;
+    }
+
+    public int getIndividualSellPrice()
+    {
+        return this.sellPrice;
     }
 
     public int getSellPrice()
