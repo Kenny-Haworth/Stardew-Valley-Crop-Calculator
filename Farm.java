@@ -1,9 +1,12 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Farm implements Comparable<Farm>
 {
+    private static HashMap<String, ArrayList<FarmProto>> cachedFarms; //a memoization cache of all combinations that have already been seen
     private static ArrayList<Crop> cropTypes; //all unique types of crops
     private static int daysRemaining;
+    private static int leastExpensiveCropValue;
     private ArrayList<CropGroup> crops; //the crops currently on the farm
     private int gold;
     private int goldCache; //crops are not sold immediately after harvesting; the gold is obtained the following day
@@ -17,7 +20,6 @@ public class Farm implements Comparable<Farm>
         this.event = null;
 
         this.crops = new ArrayList<>();
-
         if (crops != null)
         {
             for (CropGroup cropGroup : crops)
@@ -27,7 +29,6 @@ public class Farm implements Comparable<Farm>
         }
 
         this.events = new ArrayList<>();
-
         if (events != null)
         {
             for (FarmEvent farmEvent : events)
@@ -46,10 +47,13 @@ public class Farm implements Comparable<Farm>
      * the end of the season, so these are static
      * variables.
      */
-    public static void initialize(ArrayList<Crop> crops, int daysLeft)
+    public static void initialize(ArrayList<Crop> crops, int daysLeft, int leastExpensiveCropCost)
     {
+        cachedFarms = new HashMap<>();
         cropTypes = new ArrayList<>(crops);
         daysRemaining = daysLeft;
+        leastExpensiveCropValue = leastExpensiveCropCost;
+        update();
     }
 
     /**
@@ -100,8 +104,7 @@ public class Farm implements Comparable<Farm>
             gold += goldCache;
         }
 
-        ArrayList<Farm> farmPermutations = invest();
-        return farmPermutations;
+        return invest();
     }
 
     private void advanceCrops()
@@ -129,15 +132,14 @@ public class Farm implements Comparable<Farm>
         ArrayList<CropGroup> worthlessCrops = new ArrayList<>();
         for (CropGroup cropGroup : crops)
         {
-            int amount = cropGroup.harvest(event);
-            goldCache += amount;
+            goldCache += cropGroup.harvest(event);
 
             if (!cropGroup.canProduceMore(daysRemaining))
             {
                 worthlessCrops.add(cropGroup);
             }
         }
-        crops.removeAll(worthlessCrops);
+        crops.removeAll(worthlessCrops); //TODO test runtime with individual remove() calls
     }
 
     public ArrayList<Farm> invest()
@@ -151,7 +153,7 @@ public class Farm implements Comparable<Farm>
          * In any of these cases, return this farm progressed one day.
          */
         if (cropTypes.size() == 0 ||
-            gold < cropTypes.get(cropTypes.size()-1).getBuyPrice() ||
+            gold < leastExpensiveCropValue ||
             getNumCrops() >= Energy.maxWaterableTiles())
         {
             ArrayList<Farm> noPermutation = new ArrayList<>();
@@ -163,9 +165,70 @@ public class Farm implements Comparable<Farm>
         //calculate all permutations of farms
         else
         {
-            FarmPermutation permutation = new FarmPermutation(this, cropTypes); //TODO no need to pass in cropTypes, and make static function
-            return permutation.calculateFarmPermutations();
+            String hashString = createHash();
+            if (!cachedFarms.containsKey(hashString))
+            {
+                //filter out seeds you don't have enough gold to purchase
+                ArrayList<Crop> validCrops = new ArrayList<>();
+                for (Crop cropType : cropTypes)
+                {
+                    if (this.gold >= cropType.getBuyPrice())
+                    {
+                        validCrops.add(cropType);
+                    }
+                }
+
+                int purchasingGold = this.gold - (this.gold % leastExpensiveCropValue);
+                cachedFarms.put(hashString, FarmPermutation.calculate(validCrops, getNumCrops(), purchasingGold));
+            }
+
+            //turn Farm prototypes into full Farms
+            ArrayList<FarmProto> farmProtos = cachedFarms.get(hashString);
+            ArrayList<Farm> farmPermutations = new ArrayList<>(farmProtos.size());
+            int remainingGold = this.gold % leastExpensiveCropValue;
+
+            for (FarmProto farmProto : farmProtos)
+            {
+                farmPermutations.add(farmProto.createFarm(this.crops, this.events, remainingGold, this.goldCache));
+            }
+
+            return farmPermutations;
         }
+    }
+
+    /**
+     * Creates a string that represents this Farm's choices for planting.
+     *
+     * Variables that uniquely identify this Farm's choices for planting are:
+     *      Gold
+     *      Amount of Energy left to water more crops
+     *
+     * Some Farms with different amounts of gold and energy left will result
+     * in the same permutations. For example, a Farm with 101 gold and a
+     * Farm with 100 gold will give the same permutations if the least
+     * expensive crop costs 50 gold. Similarly, a Farm with 10 energy
+     * remaining and a farm with 100 energy remaining will also give the same
+     * permutations if the Farm is unable to purchase, at maximum, 11 crops.
+     *
+     * Thus, to increase memoization (cache) hits, this function simplifies
+     * gold and energy by removing remaining gold that could not be used in
+     * purchasing additional crops and altogether eliminating energy if it
+     * will not have an effect on the outcome (or in other words, if you
+     * bought as many of the least expensive crop as possible, you would not
+     * have negative energy leftover).
+     */
+    public String createHash()
+    {
+        int goldHash = this.gold - (this.gold % leastExpensiveCropValue);
+        int energyHash = Energy.maxWaterableTiles() - getNumCrops();
+
+        //if energy requirements are not an issue, set to 0
+        if (goldHash/leastExpensiveCropValue <= energyHash)
+        {
+            energyHash = 0;
+        }
+
+        return new String(goldHash + "," + energyHash + ",");
     }
 
     //returns the number of crops currently on this farm

@@ -139,11 +139,11 @@ public class CropCalculator
         //sort the crops in descending order of buy price (most expensive crops first)
         Collections.sort(crops);
 
-        //first time setup
+        //initialize classes and containing structures
         Energy.initialize(numStardropsEaten, wateringCanLevel, farmingProficiencyLevel);
         int daysRemaining = DAYS_IN_A_SEASON - day + 1; //plus one to ensure we have a FarmEvent log for the last day
-        Farm.initialize(crops, daysRemaining);
-        Farm.update();
+        int leastExpensiveCropValue = crops.get(crops.size()-1).getBuyPrice();
+        Farm.initialize(crops, daysRemaining, leastExpensiveCropValue);
         Farm startingFarm = new Farm(null, gold, 0, null);
         ArrayList<Farm> farms = new ArrayList<>();
         farms.add(startingFarm);
@@ -168,16 +168,16 @@ public class CropCalculator
             //TODO scan for duplicates
             //TODO tree pruning here
         }
+
         double endTime = System.nanoTime() - startTime;
 
         System.out.println("Total number of farm permutations: " + farms.size());
-
-        Collections.sort(farms);
-
         System.out.println("For day " + day + " of " + season + " starting with " + gold + " gold " +
                            "and a maximum of " + Energy.maxWaterableTiles() + " waterable tiles a day, " +
                            "the most profitable strategy you can pursue is:");
 
+        //sort farms by gold value
+        Collections.sort(farms);
         for (int i = 0; i < farms.size(); i++)
         {
             if (i%10 == 0) System.out.println(i);
