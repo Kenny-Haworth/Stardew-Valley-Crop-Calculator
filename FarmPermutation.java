@@ -42,9 +42,9 @@ public class FarmPermutation
         //base case
         //you cannot invest money into any more crops
         //or you are at maximum depth
-        if (gold == 0 || totalNumSeeds == maxPlantableSeeds)
+        if (gold < validCrops.get(validCrops.size()-1).getBuyPrice()|| totalNumSeeds == maxPlantableSeeds)
         {
-            createFarmProto(numEachSeed);
+            createFarmProto(numEachSeed, gold);
         }
         //recursive case
         else
@@ -69,7 +69,7 @@ public class FarmPermutation
     }
 
     //creates a prototype farm
-    private static void createFarmProto(int[] numEachSeed)
+    private static void createFarmProto(int[] numEachSeed, int gold)
     {
         ArrayList<CropGroup> seeds = new ArrayList<>();
         for (int i = 0; i < numEachSeed.length; i++)
@@ -80,7 +80,7 @@ public class FarmPermutation
             }
         }
 
-        farmPermutations.add(new FarmProto(seeds));
+        farmPermutations.add(new FarmProto(seeds, gold));
     }
 
     //turns an int array into a string

@@ -9,10 +9,12 @@ import java.util.ArrayList;
 public class FarmProto
 {
     private ArrayList<CropGroup> newSeeds;
+    private int gold;
 
-    public FarmProto(ArrayList<CropGroup> newCrops)
+    public FarmProto(ArrayList<CropGroup> newCrops, int gold)
     {
         this.newSeeds = new ArrayList<>(newCrops);
+        this.gold = gold;
     }
 
     //creates a Farm from this proto using the calling farm's fields
@@ -24,7 +26,7 @@ public class FarmProto
         //update log
         FarmEvent farmEvent = events.get(events.size()-1);
         farmEvent.setSeedsPurchased(newSeeds);
-        farmEvent.setEndingGold(remainingGold, goldCache);
+        farmEvent.setEndingGold(gold+remainingGold, goldCache);
 
         ArrayList<CropGroup> totalCrops = new ArrayList<>();
 
@@ -47,6 +49,6 @@ public class FarmProto
             eventsCopy.add(event.clone());
         }
 
-        return new Farm(totalCrops, remainingGold, goldCache, eventsCopy);
+        return new Farm(totalCrops, gold+remainingGold, goldCache, eventsCopy);
     }
 }
